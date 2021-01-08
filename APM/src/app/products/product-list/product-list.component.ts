@@ -1,64 +1,38 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Store } from '@ngrx/store';
-
-import { Product } from '../product';
 import {
-  getCurrentProduct,
-  getError,
-  getProducts,
-  getShowProductCode,
-  State,
-} from '../state/product.reducer';
-import * as ProductActions from '../state/product.actions';
-import { Observable } from 'rxjs';
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { Product } from '../product';
 
 @Component({
   selector: 'pm-product-list',
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductListComponent implements OnInit, OnDestroy {
+export class ProductListComponent {
   pageTitle = 'Products';
-  errorMessage: string;
 
-  displayCode: boolean;
-
-  products: Product[];
-
-  // Used to highlight the selected product in the list
-  selectedProduct: Product | null;
-  products$: Observable<Product[]>;
-  selectedProduct$: Observable<Product>;
-  displayCode$: Observable<boolean>;
-  errorMessage$: Observable<string>;
-
-  constructor(private store: Store<State>) {}
-
-  ngOnInit(): void {
-    // TODO: unsubscribe
-    this.selectedProduct$ = this.store.select(getCurrentProduct);
-
-    this.products$ = this.store.select(getProducts);
-
-    this.errorMessage$ = this.store.select(getError);
-
-    this.store.dispatch(ProductActions.loadProducts());
-
-    // TODO: unsubscribe
-    this.displayCode$ = this.store.select(getShowProductCode);
-  }
-
-  ngOnDestroy(): void {}
+  @Input() errorMessage: string;
+  @Input() products: Product[];
+  @Input() displayCode: boolean;
+  @Input() selectedProduct: Product;
+  @Output() displayCodeChanged = new EventEmitter<boolean>();
+  @Output() initializeNewProduct = new EventEmitter<void>();
+  @Output() productWasSelected = new EventEmitter<Product>();
 
   checkChanged(): void {
-    this.store.dispatch(ProductActions.toggleProductCode());
+    this.displayCodeChanged.emit();
   }
 
   newProduct(): void {
-    this.store.dispatch(ProductActions.initializeCurrentProduct());
+    this.initializeNewProduct.emit();
   }
 
   productSelected(product: Product): void {
-    this.store.dispatch(ProductActions.setCurrentProduct({ product }));
+    this.productWasSelected.emit(product);
   }
 }
